@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Typing Practice</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-color: white;
+            transition: background-color 0.1s; /* Smooth flash transition */
+        }
+
+        /* Setup Screen Styling */
+        #setup {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 1.2rem;
+            width: 300px;
+            text-align: center;
+            border: 2px solid #333;
+            outline: none;
+        }
+
+        /* Game Screen Styling */
+        #game {
+            display: none; /* Hidden by default */
+            font-size: 25rem; /* Huge text */
+            font-weight: bold;
+            color: black;
+            user-select: none;
+        }
+
+        /* Utility classes for state management */
+        .hidden { display: none !important; }
+        .visible { display: block !important; }
+    </style>
+</head>
+<body>
+
+    <div id="setup">
+        <label for="charInput">Enter characters to practice:</label>
+        <input type="text" id="charInput" placeholder="e.g. abc123{}" autofocus>
+        <p>Press <strong>SPACE</strong> to Start / Stop</p>
+    </div>
+
+    <div id="game"></div>
+
+    <script>
+        // State
+        const state = {
+            running: false,
+            chars: '',
+            target: ''
+        };
+
+        // DOM Elements
+        const els = {
+            body: document.body,
+            setup: document.getElementById('setup'),
+            input: document.getElementById('charInput'),
+            game: document.getElementById('game')
+        };
+
+        // Core Logic
+        document.addEventListener('keydown', (e) => {
+            // 1. Toggle Game State on SPACE
+            if (e.code === 'Space') {
+                e.preventDefault(); // Prevent scrolling or typing space
+                toggleGame();
+                return;
+            }
+
+            // 2. Handle Game Input
+            if (state.running) {
+                // Ignore Shift/Ctrl/Alt presses
+                if (e.key.length > 1) return; 
+
+                if (e.key === state.target) {
+                    flash('green');
+                    nextChar();
+                } else {
+                    flash('red');
+                }
+            }
+        });
+
+        function toggleGame() {
+            state.running = !state.running;
+
+            if (state.running) {
+                // Validate input
+                const val = els.input.value;
+                if (!val) {
+                    alert("Please enter some characters in the box first.");
+                    state.running = false;
+                    return;
+                }
+                
+                // Initialize Game
+                state.chars = val;
+                els.setup.classList.add('hidden');
+                els.game.classList.remove('hidden'); // flex/block handled by CSS
+                els.game.style.display = 'block';
+                nextChar();
+            } else {
+                // Stop Game
+                els.setup.classList.remove('hidden');
+                els.game.style.display = 'none';
+                els.body.style.backgroundColor = 'white'; // Reset flash
+                els.input.focus();
+            }
+        }
+
+        function nextChar() {
+            // Random pick
+            const randomIndex = Math.floor(Math.random() * state.chars.length);
+            state.target = state.chars[randomIndex];
+            els.game.textContent = state.target;
+        }
+
+        function flash(color) {
+            // specific hex codes for better visibility
+            const colors = { green: '#90EE90', red: '#FF7F7F' };
+            
+            els.body.style.backgroundColor = colors[color];
+            
+            // Reset to white after 150ms
+            setTimeout(() => {
+                els.body.style.backgroundColor = 'white';
+            }, 150);
+        }
+    </script>
+</body>
+</html>
